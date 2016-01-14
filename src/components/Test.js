@@ -20,7 +20,8 @@ Test.defaultProps = {
   styles: [
     {
       text: {
-        color: "blue"
+        color: "blue",
+        fontSize: 20,
       }
     },
     (t)=>({
