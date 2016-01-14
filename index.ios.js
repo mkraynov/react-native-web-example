@@ -18,7 +18,7 @@ var ReactNativeWebExample = React.createClass({
   render: function () {
     return (
       <View style={styles.container}>
-        <Test>
+        <Test open={true}>
           <Text style={styles.welcome}>
             Welcome to React Native!
           </Text>

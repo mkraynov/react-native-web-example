@@ -17,9 +17,14 @@ export default class Test extends StyledComponent {
 }
 
 Test.defaultProps = {
-  styles: {
-    text: {
-      color: "red"
-    }
-  }
+  styles: [
+    {
+      text: {
+        color: "blue"
+      }
+    },
+    (t)=>({
+      "text:not-open": {color: "green"}
+    })
+  ]
 };
