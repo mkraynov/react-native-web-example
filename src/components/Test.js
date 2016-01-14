@@ -24,7 +24,12 @@ Test.defaultProps = {
       }
     },
     (t)=>({
-      "text:not-open": {color: "green"}
-    })
+      "text:is-open": {color: "yellow"}
+    }),
+    {
+      "text:is-open": {
+        "backgroundColor": "blue"
+      }
+    }
   ]
 };

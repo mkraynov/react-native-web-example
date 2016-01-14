@@ -4,6 +4,7 @@ import invariant from 'fbjs/lib/invariant';
 import _ from 'lodash';
 import React from 'react-native';
 
+let stylesId = 0;
 
 export default class Styles {
   static create(s) {
@@ -17,7 +18,11 @@ export default class Styles {
     //if(web) {
     extraProps.style = styles.getStyle(ref, props);
     //} else {
-    //extraProps.className = element.props.className + " " + style.getClassName(ref, props)
+    //console.log(element.props.className);
+    var classes = styles.getClassNames(ref, props).join(" ");
+    if(classes.length > 0) {
+      extraProps.className = _.trim((element.props.className ? element.props.className : "") + " " + classes);
+    }
     //}
 
     extraProps.style = {...extraProps.style, ...element.props.style};
@@ -42,6 +47,9 @@ export default class Styles {
     this._styles = [];
     this._style = null;
     this._raw = s;
+    if (!s.hasOwnProperty("_id")) {
+      s._id = stylesId++;
+    }
     invariant((_.isPlainObject(s) || _.isFunction(s) || _.isArrayLike(s)),
       "Style must be plain object, function or array");
   }
@@ -68,7 +76,7 @@ export default class Styles {
         }
         let split = refStyle.split(":");
         style[split[0]] = style[split[0]] || {
-            "local": refStyle.replace(":", "__"),
+            "local": this._buildClassName(split[0], this._raw._id, theme.id),
             "styles": {},
             "conditionStyles": []
           };
@@ -78,6 +86,7 @@ export default class Styles {
           for (let i = 1; i < split.length; i++) {
             let conditionalRef = split[i].split("-"); //"is-open" -> ["is","open"];
             let conditionalStyle = {
+              local: this._buildClassName(split[0] + "__" + split[i], this._raw._id, theme.id),
               not: conditionalRef[0] === "not",
               name: conditionalRef[1],
               value: typeof conditionalRef[2] !== "undefined" ? conditionalRef[2] : true,
@@ -89,6 +98,10 @@ export default class Styles {
       }
     }
     this._style = style;
+  }
+
+  _buildClassName(name, stylesId, themeId) {
+    return "s" + stylesId + "__" + "t" + themeId + "__" + name;
   }
 
   _initStyles(styles) {
@@ -115,6 +128,18 @@ export default class Styles {
       }
     }
     return result;
+  }
+
+  getClassNames(name, props) {
+    let style = this._style[name];
+    let classNames = [];
+    if (style) {
+      classNames.push(style.local);
+      for (let conditionStyle of style.conditionStyles) {
+        classNames.push(conditionStyle.local);
+      }
+    }
+    return _.uniq(classNames);
   }
 
 
