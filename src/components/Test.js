@@ -25,7 +25,7 @@ Test.defaultProps = {
       }
     },
     (t)=>({
-      "text:is-open": {color: "yellow"}
+      "text:is-open": {color: t.id === 0 ? "yellow" : "green"}
     }),
     {
       "text:is-open": {

@@ -18,14 +18,14 @@ export default class Styles {
     }
   }
 
-  static linkRefs(styles, element, props, context, isMain) {
+  static linkRefs(styles, element, props, context, theme, isMain) {
     let ref = isMain ? 'main' : element.ref;
     let extraProps = {};
 
     if (Platform.OS !== "web") {
-      extraProps.style = styles.getStyle(ref, props);
+      extraProps.style = styles.getStyle(ref, props, theme);
     } else {
-      var classes = styles.getClassNames(ref, props).join(" ");
+      var classes = styles.getClassNames(ref, props, theme).join(" ");
       if (classes.length > 0) {
         extraProps.className = _.trim((element.props.className ? element.props.className : "") + " " + classes);
       }
@@ -36,12 +36,12 @@ export default class Styles {
     let newChildren =
       React.isValidElement(element.props.children)
         ?
-        Styles.linkRefs(styles, React.Children.only(element.props.children), props, context, false)
+        Styles.linkRefs(styles, React.Children.only(element.props.children), props, context, theme, false)
         :
         React.Children.map(element.props.children, element =>
           React.isValidElement(element)
             ?
-            Styles.linkRefs(styles, element, props, context, false)
+            Styles.linkRefs(styles, element, props, context, theme, false)
             :
             element
         );
@@ -50,12 +50,13 @@ export default class Styles {
   }
 
   constructor(s) {
-    this._styles = [];
-    this._style = null;
-    this._raw = s;
-    s._id = stylesId++;
     invariant((_.isPlainObject(s) || _.isFunction(s) || _.isArrayLike(s)),
       "Style must be plain object, function or array");
+
+    s._id = stylesId++;
+    this._raw = s;
+    this._styles = [];
+    this._initStyles(this._raw);
   }
 
   use(themeName) {
@@ -69,7 +70,7 @@ export default class Styles {
     }
 
     if (Platform.OS === "web") {
-      let styles = this._stylesToString();
+      let styles = this._stylesToString(themeName);
       if (canUseDOM) {
         let id = "s" + this._raw._id + "t" + theme.id;
         cssRefsCounters[id] = (typeof cssRefsCounters[id] !== "undefined") ? ++cssRefsCounters[id] : 1;
@@ -89,7 +90,6 @@ export default class Styles {
 
   _build(context, theme) {
     let style = {};
-    this._initStyles(this._raw);
     for (let i = 0; i < this._styles.length; i++) {
       let themedStylesChunk = this._styles[i](theme);
       for (let refStyle in themedStylesChunk) {
@@ -119,7 +119,7 @@ export default class Styles {
         }
       }
     }
-    this._style = style;
+    this._raw._uses[theme.id]._style = style;
   }
 
   _buildClassName(name, stylesId, themeId) {
@@ -138,8 +138,9 @@ export default class Styles {
     }
   }
 
-  getStyle(name, props) {
-    let style = this._style[name];
+  getStyle(name, props, themeName) {
+    let theme = Themes.get(themeName);
+    let style = this._raw._uses[theme.id]._style[name];
     let result = {};
     if (style) {
       result = style.styles;
@@ -152,8 +153,9 @@ export default class Styles {
     return result;
   }
 
-  getClassNames(name, props) {
-    let style = this._style[name];
+  getClassNames(name, props, themeName) {
+    let theme = Themes.get(themeName);
+    let style = this._raw._uses[theme.id]._style[name];
     let classNames = [];
     if (style) {
       classNames.push(style.local);
@@ -164,18 +166,20 @@ export default class Styles {
     return _.uniq(classNames);
   }
 
-  _stylesToString() {
+  _stylesToString(themeName) {
     let styles = [];
-    for (let styleKey in this._style) {
+    let theme = Themes.get(themeName);
+    let style = this._raw._uses[theme.id]._style;
+    for (let styleKey in style) {
       if (styleKey.startsWith("_")) {
         continue;
       }
-      let style = this._style[styleKey];
-      styles.push("." + style.local + "{");
-      styles.push(CSSPropertyOperations.createMarkupForStyles(style.styles));
+      let styleVal = style[styleKey];
+      styles.push("." + styleVal.local + "{");
+      styles.push(CSSPropertyOperations.createMarkupForStyles(styleVal.styles));
       styles.push("}\n");
-      for (let conditionStyleKey in style.conditionStyles) {
-        let conditionStyle = style.conditionStyles[conditionStyleKey];
+      for (let conditionStyleKey in styleVal.conditionStyles) {
+        let conditionStyle = styleVal.conditionStyles[conditionStyleKey];
         styles.push("." + conditionStyle.local + "{");
         styles.push(CSSPropertyOperations.createMarkupForStyles(conditionStyle.style));
         styles.push("}\n");

@@ -30,9 +30,16 @@ var ReactNativeWebExample = React.createClass({
           !this.state.closed2 &&
           <Test open={true}>
             <Text style={styles.welcome} onClick={this.onClick2}>
-              Welcome to React Native!
+              Welcome to React Native!!
             </Text>
-        </Test>
+          </Test>
+        }
+        {
+          <Test open={false}>
+            <Text style={styles.welcome}>
+              Welcome to React Native!!!
+            </Text>
+          </Test>
         }
       </View>
     );

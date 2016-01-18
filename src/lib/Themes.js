@@ -1,6 +1,15 @@
+let id = 0;
+let themesRepo = {};
+
 class Theme {
-  constructor() {
-    this.id = 1;
+  constructor(name) {
+    if (themesRepo[name]) {
+      return themesRepo[name];
+    } else {
+      this.id = id++;
+      themesRepo[name] = this;
+    }
+
   }
 
   get(expression, defaultValue) {
@@ -18,7 +27,7 @@ class Theme {
 
 export default class Themes {
   static get(name = "default") {
-    return new Theme();
+    return new Theme(name);
   }
 }
 
