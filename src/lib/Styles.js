@@ -11,7 +11,11 @@ let cssRefsCounters = {};
 
 export default class Styles {
   static create(s) {
-    return new Styles(s);
+    if (!s.hasOwnProperty("_id")) {
+      return s._ref = new Styles(s);
+    } else {
+      return s._ref;
+    }
   }
 
   static linkRefs(styles, element, props, context, isMain) {
@@ -49,9 +53,7 @@ export default class Styles {
     this._styles = [];
     this._style = null;
     this._raw = s;
-    if (!s.hasOwnProperty("_id")) {
-      s._id = stylesId++;
-    }
+    s._id = stylesId++;
     invariant((_.isPlainObject(s) || _.isFunction(s) || _.isArrayLike(s)),
       "Style must be plain object, function or array");
   }

@@ -26,17 +26,33 @@ var ReactNativeWebExample = React.createClass({
             </Text>
           </Test>
         }
+        {
+          !this.state.closed2 &&
+          <Test open={true}>
+            <Text style={styles.welcome} onClick={this.onClick2}>
+              Welcome to React Native!
+            </Text>
+        </Test>
+        }
       </View>
     );
   },
   getInitialState: function() {
     return {
-      "closed": false
+      "closed": false,
+      "closed2": false
     }
   },
   onClick: function(){
     this.setState({
-      "closed": true
+      "closed": true,
+      "closed2": false
+    });
+  },
+  onClick2: function(){
+    this.setState({
+      "closed": true,
+      "closed2": true
     });
   }
 });
