@@ -60,19 +60,18 @@ export default class Styles {
   }
 
   use(themeName) {
-    this.theme = themeName;
     let theme = Themes.get(themeName);
     this._raw._uses = this._raw._uses || {};
-    this._raw._uses[theme.id] = this._raw._uses[theme.id] || {};
-    this._raw._uses[theme.id].count = this._raw._uses[theme.id].count || 0;
-    if (++this._raw._uses[theme.id].count == 1) {
-      this._build(this._raw._uses[theme.id], theme);
+    this._raw._uses[theme._id] = this._raw._uses[theme._id] || {};
+    this._raw._uses[theme._id].count = this._raw._uses[theme._id].count || 0;
+    if (++this._raw._uses[theme._id].count == 1) {
+      this._build(this._raw._uses[theme._id], theme);
     }
 
     if (Platform.OS === "web") {
       let styles = this._stylesToString(themeName);
       if (canUseDOM) {
-        let id = "s" + this._raw._id + "t" + theme.id;
+        let id = "s" + this._raw._id + "t" + theme._id;
         cssRefsCounters[id] = (typeof cssRefsCounters[id] !== "undefined") ? ++cssRefsCounters[id] : 1;
         if (cssRefsCounters[id] === 1) {
           let style = document.createElement('style');
@@ -98,7 +97,7 @@ export default class Styles {
         }
         let split = refStyle.split(":");
         style[split[0]] = style[split[0]] || {
-            "local": this._buildClassName(split[0], this._raw._id, theme.id),
+            "local": this._buildClassName(split[0], this._raw._id, theme._id),
             "styles": {},
             "conditionStyles": []
           };
@@ -108,7 +107,7 @@ export default class Styles {
           for (let i = 1; i < split.length; i++) {
             let conditionalRef = split[i].split("-"); //"is-open" -> ["is","open"];
             let conditionalStyle = {
-              local: this._buildClassName(split[0] + "__" + split[i], this._raw._id, theme.id),
+              local: this._buildClassName(split[0] + "__" + split[i], this._raw._id, theme._id),
               not: conditionalRef[0] === "not",
               name: conditionalRef[1],
               value: typeof conditionalRef[2] !== "undefined" ? conditionalRef[2] : true,
@@ -119,7 +118,7 @@ export default class Styles {
         }
       }
     }
-    this._raw._uses[theme.id]._style = style;
+    this._raw._uses[theme._id]._style = style;
   }
 
   _buildClassName(name, stylesId, themeId) {
@@ -140,12 +139,16 @@ export default class Styles {
 
   getStyle(name, props, themeName) {
     let theme = Themes.get(themeName);
-    let style = this._raw._uses[theme.id]._style[name];
+    let style = this._raw._uses[theme._id]._style[name];
     let result = {};
     if (style) {
       result = style.styles;
       for (let conditionStyle of style.conditionStyles) {
-        if (props.hasOwnProperty(conditionStyle.name) && props[conditionStyle.name] === conditionStyle.value && !conditionStyle.not) {
+        if (conditionStyle.not) {
+          if ((!props.hasOwnProperty(conditionStyle.name))) {
+            result = {...result, ...conditionStyle.style};
+          }
+        } else if (props.hasOwnProperty(conditionStyle.name) && props[conditionStyle.name] === conditionStyle.value) {
           result = {...result, ...conditionStyle.style};
         }
       }
@@ -155,12 +158,19 @@ export default class Styles {
 
   getClassNames(name, props, themeName) {
     let theme = Themes.get(themeName);
-    let style = this._raw._uses[theme.id]._style[name];
+    let style = this._raw._uses[theme._id]._style[name];
     let classNames = [];
     if (style) {
       classNames.push(style.local);
       for (let conditionStyle of style.conditionStyles) {
-        classNames.push(conditionStyle.local);
+        if (conditionStyle.not) {
+            console.log(conditionStyle);
+            if ((!props.hasOwnProperty(conditionStyle.name))) {
+              classNames.push(conditionStyle.local);
+            }
+        } else if (props.hasOwnProperty(conditionStyle.name) && props[conditionStyle.name] === conditionStyle.value) {
+          classNames.push(conditionStyle.local);
+        }
       }
     }
     return _.uniq(classNames);
@@ -169,7 +179,7 @@ export default class Styles {
   _stylesToString(themeName) {
     let styles = [];
     let theme = Themes.get(themeName);
-    let style = this._raw._uses[theme.id]._style;
+    let style = this._raw._uses[theme._id]._style;
     for (let styleKey in style) {
       if (styleKey.startsWith("_")) {
         continue;
@@ -189,11 +199,10 @@ export default class Styles {
   }
 
 
-  unuse() {
-    let theme = Themes.get(this.theme);
-    this.theme = void(0);
+  unuse(themeName) {
+    let theme = Themes.get(themeName);
     if (Platform.OS === "web" && canUseDOM) {
-      let id = "s" + this._raw._id + "t" + theme.id;
+      let id = "s" + this._raw._id + "t" + theme._id;
       cssRefsCounters[id] = --cssRefsCounters[id];
       if (cssRefsCounters[id] === 0) {
         let style = document.querySelectorAll("style[data-css-id='" + id + "']");

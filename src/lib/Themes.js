@@ -6,7 +6,8 @@ class Theme {
     if (themesRepo[name]) {
       return themesRepo[name];
     } else {
-      this.id = id++;
+      this._id = id++;
+      this._name = name;
       themesRepo[name] = this;
     }
 

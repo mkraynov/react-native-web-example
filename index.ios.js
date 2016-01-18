@@ -13,6 +13,7 @@ var {
   Platform,
 } = React;
 import Test from './src/components/Test';
+import Theme from './src/components/Theme';
 
 var ReactNativeWebExample = React.createClass({
   render: function () {
@@ -28,18 +29,20 @@ var ReactNativeWebExample = React.createClass({
         }
         {
           !this.state.closed2 &&
-          <Test open={true}>
+          <Test open={"false"}>
             <Text style={styles.welcome} onClick={this.onClick2}>
               Welcome to React Native!!
             </Text>
           </Test>
         }
         {
-          <Test open={false}>
-            <Text style={styles.welcome}>
-              Welcome to React Native!!!
-            </Text>
-          </Test>
+          <Theme name="dark">
+            <Test>
+              <Text style={styles.welcome}>
+                Welcome to React Native!!!
+              </Text>
+            </Test>
+          </Theme>
         }
       </View>
     );
