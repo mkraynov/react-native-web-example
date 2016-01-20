@@ -25,7 +25,7 @@ Test.defaultProps = {
       }
     },
     (t)=>({
-      "text:is-open": {color: (console.log(t), t._name === "dark" ? "black" : "yellow")},
+      "text:is-open": {color: (console.log(t), t.get("brandColorDefault", "yellow"))},
       "text:is-open-false": {color: "green"}
     }),
     {

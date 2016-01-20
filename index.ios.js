@@ -14,9 +14,19 @@ var {
 } = React;
 import Test from './src/components/Test';
 import Theme from './src/components/Theme';
+import Themes from './src/lib/Themes';
 
 var ReactNativeWebExample = React.createClass({
   render: function () {
+    Themes.register({
+      "brandColorDefault": "red",
+      "brandColorAccent": "blue"
+    });
+
+    Themes.override("dark", {
+      "brandColorAccent": (t)=>{ return "black" }
+    });
+
     return (
       <View style={styles.container}>
         {
