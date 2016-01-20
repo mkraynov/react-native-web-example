@@ -24,7 +24,7 @@ var ReactNativeWebExample = React.createClass({
     });
 
     Themes.override("dark", {
-      "brandColorAccent": (t)=>{ return "black" }
+      "brandColorDefault": (t)=>{ return t.get("brandColorDefault", "black") }
     });
 
     return (
@@ -47,7 +47,7 @@ var ReactNativeWebExample = React.createClass({
         }
         {
           <Theme name="dark">
-            <Test>
+            <Test open={true}>
               <Text style={styles.welcome}>
                 Welcome to React Native!!!
               </Text>

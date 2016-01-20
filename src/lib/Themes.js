@@ -63,6 +63,7 @@ export default class Themes {
   static register(p) {
     if (defaultRegistered) {
       console.error("You can not register default theme more than once");
+      return;
     }
 
     themesRepo["default"] = new Theme("default", Themes._validateThemeProps(p));
