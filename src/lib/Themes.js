@@ -3,33 +3,29 @@ import _ from 'lodash';
 
 let id = 0;
 let themesRepo = {};
-let defaultRegistered = false;
 
 class Theme {
-  _props: {}
-
   constructor(name, props) {
     if (themesRepo[name]) {
       return themesRepo[name];
     } else {
       this._id = id++;
       this._name = name;
+      this._props = [];
       themesRepo[name] = this;
     }
-    if ("default" !== name && !Themes.get()) {
+    if ("default" !== name && !themesRepo["default"]) {
       console.error("Register default theme first");
     }
-    this._add(Themes.get()._props);
     this._add(props);
-  }
-
-  toString() {
-    return JSON.stringify(this._props);
   }
 
   get(expression, defaultValue) {
     try {
-        let result = eval("this._props." + expression);
+        let result = eval("this." + expression);
+        if (_.isFunction(result)) {
+          result = result(this);
+        }
         if (typeof result === 'undefined') {
           return defaultValue;
         }
@@ -40,39 +36,65 @@ class Theme {
   }
 
   _add(p) {
+    this._props.push(p);
+  }
+
+  static _build(theme, context, p) {
     for (let pKey in p) {
       if (pKey.startsWith("_")) {
         continue;
       }
       let prop = p[pKey];
       if (_.isFunction(prop)) {
-        prop = prop(this);
+        prop = prop(theme);
+      }
+      if (_.isPlainObject(prop)) {
+        Theme._build(theme, prop, prop);
       }
       let props = {};
       props[pKey] = prop;
-      this._props = {...this._props, ...props};
+      Object.assign(context, props);
+    }
+  }
+
+  static invalidate() {
+    for (let t in themesRepo) {
+      delete themesRepo[t];
     }
   }
 }
 
 export default class Themes {
   static get(name = "default") {
-    return themesRepo[name];
+    let theme = themesRepo[name];
+    if (theme) {
+      if (!theme._built) {
+        if ("default" !== name) {
+          let defaultTheme = themesRepo["default"];
+          for (let p in defaultTheme) {
+            if (defaultTheme.hasOwnProperty(p) && !p.startsWith("_")) {
+              theme[p] = _.cloneDeep(defaultTheme[p]);
+            }
+          }
+        }
+        for (let p in theme._props) {
+          Theme._build(theme, theme, theme._props[p]);
+        }
+        theme._built = true;
+      }
+    } else {
+      theme = new Theme(name);
+      themesRepo[name] = theme;
+    }
+    return theme;
   }
 
   static register(p) {
-    if (defaultRegistered) {
-      console.error("You can not register default theme more than once");
-      return;
-    }
-
-    themesRepo["default"] = new Theme("default", Themes._validateThemeProps(p));
-
-    defaultRegistered = true;
+    Themes.override("default", p);
   }
 
   static override(themeName, p) {
-    let theme = Themes.get(themeName);
+    let theme = themesRepo[themeName];
     let props = Themes._validateThemeProps(p);
 
     if (!theme) {

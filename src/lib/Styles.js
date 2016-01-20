@@ -164,7 +164,6 @@ export default class Styles {
       classNames.push(style.local);
       for (let conditionStyle of style.conditionStyles) {
         if (conditionStyle.not) {
-            console.log(conditionStyle);
             if ((!props.hasOwnProperty(conditionStyle.name))) {
               classNames.push(conditionStyle.local);
             }

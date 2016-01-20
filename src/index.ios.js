@@ -12,9 +12,8 @@ var {
   View,
   Platform,
 } = React;
-import Test from './src/components/Test';
-import Theme from './src/components/Theme';
-import Themes from './src/lib/Themes';
+import Test from './components/Test';
+import Theme from './components/Theme';
 import './themes';
 
 var ReactNativeWebExample = React.createClass({

@@ -1,8 +1,14 @@
+import Themes from './lib/Themes';
+
 Themes.register({
   brandColorDefault: "red",
-  brandColorAccent: "blue",
+  brandColorAccent: "blue"
+});
+
+Themes.register({
+  brandColorAccent: "green",
   dom2: {
-    "headerColor": (t)=>t.get("brandColorDefault", "black")
+    "headerColor": (t)=>t.get("brandColorAccent", "black")
   }
 });
 
